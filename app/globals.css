@@ -1,0 +1,134 @@
+@font-face {
+  font-family: Hand;
+  src: url("/assets/fonts/7deec4420490584fe4a81d4d54e8f21e.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Serif20;
+  src: url("/assets/fonts/754be84373f281b087c2e6c4f33d0f75.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  --bg: #722525;
+  --ink: #7e2929;
+  --cream: #faf4e9;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); }
+body { overflow-x: hidden; }
+
+/* Desktop canvas: scale = min(container width / 1009, 1.5), computed in CSS. */
+.fit-outer { container-type: inline-size; width: 100%; }
+.fit {
+  --k: min(tan(atan2(100cqw, 1009px)), 1.5);
+  position: relative;
+  overflow: hidden;
+  height: calc(2498px * var(--k));
+}
+.stage {
+  position: absolute; left: 50%; top: 0;
+  width: 1009px; height: 2498px; margin-left: -504.5px;
+  transform-origin: 50% 0; transform: scale(var(--k));
+  background: var(--bg);
+}
+.a { position: absolute; margin: 0; display: block; }
+img.a { max-width: none; user-select: none; -webkit-user-drag: none; }
+.sec { position: absolute; left: 0; width: 1009px; background: var(--bg); }
+.sec + .sec { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+p.a { color: var(--ink); white-space: pre; font-weight: 400; font-family: Hand, cursive; }
+p.n { font-family: Serif20, serif; }
+p.cream { color: var(--cream); }
+.nopt { pointer-events: none; }
+.crop { overflow: hidden; }
+.crop img { position: absolute; max-width: none; }
+
+.cassette { padding: 0; border: 0; background: none; cursor: pointer; }
+.cassette img { width: 100%; height: 100%; display: block; }
+.cassette:focus-visible, a.a:focus-visible { outline: 2px solid var(--cream); outline-offset: 4px; }
+
+.cassette.playing { animation: wiggle 0.9s ease-in-out infinite; }
+@keyframes wiggle {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -4px; }
+}
+.song-status {
+  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+  max-width: min(92vw, 420px); margin: 0; padding: 10px 14px;
+  background: var(--cream); color: var(--ink); border-radius: 10px;
+  font-family: Hand, cursive; font-size: 17px; text-align: center; z-index: 10;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cassette.playing { animation: none; }
+}
+
+/* ---------- Responsive: scaled canvas on tablets/desktops, re-flowed layout on phones ---------- */
+.mobile { display: none; }
+
+@media (max-width: 767px) {
+  .desktop { display: none; }
+  .mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 20px 16px 48px;
+    color: var(--cream);
+    font-family: Hand, cursive;
+    overflow-x: hidden;
+  }
+  .mobile .a { max-width: none; }
+  .m-text {
+    margin: 0;
+    font-size: clamp(17px, 4.8vw, 21px);
+    line-height: 1.5;
+    padding: 0 4px;
+  }
+  .m-pages { display: flex; flex-direction: column; gap: 6px; }
+  .m-center { text-align: center; }
+  .m-center p { margin: 6px 0 0; }
+  .m-center strong { font-weight: 400; font-size: 1.15em; }
+  .h-scroll {
+    display: flex;
+    width: calc(100% + 32px);
+    margin: 0 -16px;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .h-scroll::-webkit-scrollbar { display: none; }
+  .h-scroll:focus-visible { outline: 2px solid var(--cream); outline-offset: 4px; }
+  .m-hint { margin: 0; text-align: center; font-size: 17px; opacity: 0.85; }
+
+  .m-paper {
+    position: relative;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    padding: 16% 13% 20%;
+    color: var(--ink);
+    text-align: center;
+    margin-top: 12px;
+    min-height: 56vw;
+  }
+  .m-paper p { margin: 0; font-size: clamp(15px, 4.2vw, 19px); line-height: 1.45; }
+  .m-bears {
+    position: absolute;
+    left: -3%;
+    bottom: -9%;
+    width: 30%;
+    aspect-ratio: 210 / 127;
+    background-repeat: no-repeat;
+    background-size: 248.3% auto;
+    background-position: 0% 99.8%;
+  }
+  .m-bow { position: absolute; left: 7%; top: 12%; width: 11%; transform: rotate(-11deg); }
+  .m-star { position: absolute; width: 5.5%; }
+  .m-star1 { right: 9%; top: 11%; transform: rotate(10deg); }
+  .m-star2 { left: 11%; bottom: 14%; transform: rotate(-9deg); }
+}

@@ -1,40 +1,63 @@
 "use client";
 
 import { useEffect } from "react";
-import { media } from "@/lib/utils";
 
-// Fixed positions for the baby's-breath dots in the bouquet (x, y, r) so the art never changes between renders.
-const BREATH = [
-  [668, 342, 3], [684, 330, 2.6], [700, 322, 3], [722, 318, 2.6], [744, 326, 3], [766, 338, 2.6], [782, 352, 3],
-  [660, 372, 2.6], [676, 388, 3], [792, 380, 2.6], [786, 404, 3], [650, 396, 2.4], [706, 342, 2.4], [736, 340, 2.8],
-  [758, 362, 2.4], [694, 358, 2.4], [770, 392, 2.6], [662, 412, 2.4],
-];
-const ROSES = [
-  [690, 372, 25], [734, 356, 26], [714, 398, 27], [758, 402, 24], [674, 410, 21],
-];
-const LEAVES = [
-  [640, 372, -40], [652, 340, -70], [800, 372, 40], [812, 400, 70], [690, 318, -20], [770, 322, 25], [650, 430, -55],
+const INK = "#1c1c1c";
+const DIR = "/assets/bouquet/";
+
+// The bouquet is a stack of pictures laid out inside a 500 x 410 box, drawn at (OX, OY) in the 600 x 780 scene.
+// [file, x, y, width, height, rotation in degrees] in the order they are painted (back to front).
+const OX = 50;
+const OY = 100;
+const LAYERS = [
+  ["bush-1.png", 0, -63.9, 500, 537.7, 0],
+  ["lily.webp", 125.5, 15.5, 161.1, 161.1, 0.39],
+  ["anemone.webp", 265.2, 31.2, 129.7, 129.7, -4.83],
+  ["dahlia.webp", 112.4, 130.2, 83.1, 83.5, 2.29],
+  ["orchid.webp", 173.8, 107.8, 128.3, 128.3, -4.12],
+  ["rose.webp", 279.5, 109.5, 125.1, 125.1, 2.48],
+  ["sunflower.webp", 165.1, 163.1, 169.8, 169.8, 3.61],
+  ["bush-1-top.png", 0, -63.9, 500, 537.7, 0],
 ];
 
-function Rose({ cx, cy, r }) {
-  const stroke = { fill: "none", stroke: "#8f0c1f", strokeWidth: 1.6, strokeLinecap: "round" };
+// A small heart centred on (0,0), about `s` px wide.
+const heart = (s) => {
+  const k = s / 24;
+  return `M0 ${9 * k} C${-14 * k} ${-1 * k} ${-8 * k} ${-12 * k} 0 ${-5 * k} C${8 * k} ${-12 * k} ${14 * k} ${-1 * k} 0 ${9 * k}Z`;
+};
+
+// Faint hearts sprinkled over the letter paper: [x, y, size, rotation, opacity]
+const PAPER_HEARTS = [
+  [215, 575, 16, -12, 0.35], [300, 598, 12, 10, 0.3], [395, 585, 18, 8, 0.35], [470, 600, 14, -10, 0.3],
+  [250, 618, 10, 6, 0.25], [350, 612, 14, -6, 0.3], [440, 622, 10, 12, 0.25],
+];
+
+function Bouquet() {
   return (
     <g>
-      <circle cx={cx} cy={cy} r={r} fill="#cf1330" />
-      <path d={`M${cx - r * 0.85} ${cy + r * 0.1} Q${cx - r * 0.5} ${cy - r * 0.9} ${cx + r * 0.3} ${cy - r * 0.8}`} {...stroke} />
-      <path d={`M${cx + r * 0.85} ${cy - r * 0.05} Q${cx + r * 0.6} ${cy + r * 0.8} ${cx - r * 0.2} ${cy + r * 0.85}`} {...stroke} />
-      <path d={`M${cx - r * 0.45} ${cy - r * 0.1} Q${cx} ${cy - r * 0.6} ${cx + r * 0.45} ${cy - r * 0.05} Q${cx + r * 0.1} ${cy + r * 0.45} ${cx - r * 0.35} ${cy + r * 0.15}`} {...stroke} />
-      <circle cx={cx} cy={cy} r={r * 0.14} fill="#a30c22" />
+      {/* pale disc behind the flowers */}
+      <circle cx={OX + 250} cy={OY + 205} r="215" fill="#f1f0d0" />
+      {LAYERS.map(([file, x, y, w, h, rot]) => (
+        <image
+          key={file}
+          href={DIR + file}
+          x={OX + x}
+          y={OY + y}
+          width={w}
+          height={h}
+          transform={rot ? `rotate(${rot} ${OX + x + w / 2} ${OY + y + h / 2})` : undefined}
+        />
+      ))}
     </g>
   );
 }
 
 /**
- * Opening screen: an envelope with a "Happy Birthday" card, a camera and a bouquet.
- * `state` is "closed" | "opening" | "done"; clicking anywhere on the scene calls `onOpen`.
+ * Opening screen: a bouquet with an envelope whose letter is half out, saying "Happy Birthday".
+ * state: "peek"    -> tap the letter: it slides fully out ("reading")
+ *        "reading" -> the intro then fades away on its own ("leaving" -> "done")
  */
-export default function Intro({ state, onOpen }) {
-  // Keep the page behind the intro from scrolling until it is opened.
+export default function Intro({ state, onAdvance }) {
   useEffect(() => {
     document.body.style.overflow = state === "done" ? "" : "hidden";
     return () => {
@@ -44,98 +67,72 @@ export default function Intro({ state, onOpen }) {
 
   if (state === "done") return null;
 
+  const active = state === "peek";
+  const label = "Open the birthday letter";
+  const hint = state === "peek" ? "tap the letter ♡" : "";
+
   return (
     <div className={`intro ${state}`}>
-      <button type="button" className="intro-btn" onClick={onOpen} aria-label="Open the birthday card" disabled={state !== "closed"}>
-        <svg viewBox="140 104 710 530" role="img" aria-hidden="true" className="intro-svg">
+      <button type="button" className="intro-btn" onClick={onAdvance} aria-label={label} disabled={!active}>
+        <svg viewBox="0 0 600 780" aria-hidden="true" className="intro-svg">
           <defs>
-            <clipPath id="env-clip">
-              <rect x="300" y="60" width="300" height="440" />
-            </clipPath>
-            <filter id="soft" x="-10%" y="-10%" width="130%" height="130%">
-              <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#000" floodOpacity="0.25" />
+            <linearGradient id="paper-wash" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#ffffff" stopOpacity="0" />
+              <stop offset="1" stopColor="#f9c9d0" stopOpacity="0.55" />
+            </linearGradient>
+            <filter id="drop" x="-10%" y="-10%" width="125%" height="130%">
+              <feDropShadow dx="0" dy="5" stdDeviation="6" floodColor="#000" floodOpacity="0.25" />
             </filter>
           </defs>
 
-          {/* envelope: back, open flap, card, front folds, closing flap */}
-          <g filter="url(#soft)">
-            <rect x="300" y="250" width="300" height="250" rx="4" fill="#e6dec9" />
-          </g>
-          <polygon className="flap-open" points="300,250 600,250 450,375" fill="#ddd4be" />
+          <Bouquet />
 
-          <g clipPath="url(#env-clip)">
-            <g className="card">
-              <rect x="330" y="278" width="250" height="196" fill="#fbfaf7" stroke="#eee9de" strokeWidth="1" />
-              <text x="455" y="352" textAnchor="middle" className="script" fontSize="46">Happy</text>
-              <text x="470" y="408" textAnchor="middle" className="script" fontSize="46">Birthday</text>
+          {/* envelope back + its open flap (pointing up, behind the letter) */}
+          <g filter="url(#drop)">
+            <rect x="170" y="620" width="360" height="150" rx="4" fill="#efe6d0" stroke={INK} strokeWidth="1.6" />
+          </g>
+          <polygon points="170,620 530,620 350,510" fill="#e3d9bf" stroke={INK} strokeWidth="1.6" strokeLinejoin="round" />
+
+          {/* the letter: sits half out ("peek"), slides fully out on the first tap ("reading") */}
+          <g className="letter">
+            <g transform="rotate(-3 350 520)">
+              {/* paper: soft blush, double heart-trimmed border */}
+              <rect x="175" y="410" width="350" height="220" fill="#fff7f5" stroke={INK} strokeWidth="1.4" filter="url(#drop)" />
+              <rect x="175" y="410" width="350" height="220" fill="url(#paper-wash)" />
+              <rect x="186" y="421" width="328" height="198" fill="none" stroke="#e5788a" strokeWidth="1.6" strokeDasharray="2 6" strokeLinecap="round" />
+              <rect x="192" y="427" width="316" height="186" fill="none" stroke="#f3b4be" strokeWidth="1" />
+
+              {/* corner hearts */}
+              {[[196, 431, -15], [504, 431, 15], [196, 609, 15], [504, 609, -15]].map(([x, y, r], i) => (
+                <path key={i} d={heart(15)} transform={`translate(${x} ${y}) rotate(${r})`} fill="#e5485f" stroke="#a82336" strokeWidth="0.8" />
+              ))}
+
+              {/* hearts floating over the lower half */}
+              {PAPER_HEARTS.map(([x, y, sz, r, o], i) => (
+                <path key={i} d={heart(sz)} transform={`translate(${x} ${y}) rotate(${r})`} fill="#ec6a7d" opacity={o} />
+              ))}
+
+              {/* the greeting */}
+              <text x="350" y="470" textAnchor="middle" className="script" fontSize="50" fill="#8f1d2c">Happy</text>
+              <text x="350" y="524" textAnchor="middle" className="script" fontSize="50" fill="#8f1d2c">Birthday</text>
+              <path d="M262 540 Q350 552 438 540" fill="none" stroke="#e5788a" strokeWidth="1.6" strokeLinecap="round" />
+              <path d={heart(16)} transform="translate(350 548)" fill="#e5485f" stroke="#a82336" strokeWidth="0.8" />
             </g>
           </g>
 
-          <polygon points="300,250 450,375 300,500" fill="#efe8d6" />
-          <polygon points="600,250 450,375 600,500" fill="#efe8d6" />
-          <polygon points="300,500 450,375 600,500" fill="#f4eedf" />
-          <polygon className="flap-closed" points="300,250 600,250 450,375" fill="#e9e1cd" />
-
-          {/* little bow doodle + stickers on the envelope */}
-          <g transform="translate(330 418) rotate(-8)" fill="none" stroke="#d0303a" strokeWidth="2.2" strokeLinecap="round">
-            <path d="M0 0 C-14 -16 -34 -12 -30 4 C-26 14 -8 8 0 0 C8 -8 26 -20 36 -10 C40 0 20 6 0 0" />
-            <path d="M0 0 C-4 14 -12 24 -16 34 M0 0 C8 12 14 22 24 30" />
+          {/* envelope front (pocket) */}
+          <polygon points="170,620 350,705 170,770" fill="#f3ecd9" stroke={INK} strokeWidth="1.4" strokeLinejoin="round" />
+          <polygon points="530,620 350,705 530,770" fill="#f3ecd9" stroke={INK} strokeWidth="1.4" strokeLinejoin="round" />
+          <polygon points="170,770 350,705 530,770" fill="#f7f1e1" stroke={INK} strokeWidth="1.4" strokeLinejoin="round" />
+          <path d="M170 620 L350 705 L530 620" fill="none" stroke={INK} strokeWidth="1.4" strokeLinejoin="round" />
+          {/* heart seal where the flaps meet */}
+          <g transform="translate(350 700)">
+            <path d={heart(62)} fill="#d8283f" stroke="#8f1424" strokeWidth="1.6" strokeLinejoin="round" />
+            <path d={heart(28)} transform="translate(-8 -8) rotate(-15)" fill="#ff8d9c" opacity="0.7" />
           </g>
-          <image href={media("35bbaceb2b42e9daea562ec022646bde")} x="522" y="436" width="48" height="44" transform="rotate(-6 546 458)" />
-          <g fill="#e2323e">
-            <path d="M558 494 c-8-9-3-15 2-12 c5-3 10 3 2 12z" />
-            <path d="M582 508 c-6-7-2-12 2-9 c4-3 8 2 2 9z" />
-            <path d="M548 520 c-5-6-2-10 1-8 c3-2 6 2 1 8z" />
-          </g>
-
-          {/* camera */}
-          <g transform="translate(168 396)" filter="url(#soft)">
-            <rect x="0" y="22" width="196" height="104" rx="14" fill="#f4f3f1" stroke="#d7d5d2" />
-            <rect x="12" y="8" width="36" height="20" rx="5" fill="#eceae7" stroke="#d0cecb" />
-            <rect x="56" y="12" width="18" height="14" rx="3" fill="#e4e2df" />
-            <rect x="12" y="46" width="30" height="64" rx="10" fill="#e9e7e4" />
-            <circle cx="112" cy="76" r="44" fill="#ecebe8" stroke="#cfcdc9" strokeWidth="2" />
-            <circle cx="112" cy="76" r="33" fill="#2a2a2c" />
-            <circle cx="112" cy="76" r="23" fill="#0f1822" />
-            <circle cx="112" cy="76" r="12" fill="#14304a" />
-            <circle cx="102" cy="66" r="5" fill="#ffffff" opacity="0.55" />
-            <circle cx="168" cy="52" r="6" fill="#d9d7d4" />
-            <text x="58" y="42" fontSize="12" fill="#8a8886" fontFamily="Arial, sans-serif" fontWeight="700">Canon</text>
-          </g>
-
-          {/* bouquet */}
-          <g filter="url(#soft)">
-            <polygon points="612,300 664,330 650,430 600,400" fill="#b5171f" />
-            <polygon points="640,330 760,310 828,340 800,470 700,560 640,520" fill="#efe6d2" />
-            <polygon points="596,350 650,360 700,470 670,560 612,500" fill="#f7f0e0" />
-            <polygon points="760,340 820,350 806,468 720,552 700,470" fill="#e6dbc3" />
-            <polygon points="700,470 760,440 800,470 720,560" fill="#f1e8d4" />
-            <path d="M650 420 L700 560 L722 560 L706 470 Z" fill="#f9f3e6" />
-          </g>
-          {LEAVES.map(([x, y, a], i) => (
-            <ellipse key={i} cx={x} cy={y} rx="22" ry="8" fill="#82a98a" transform={`rotate(${a} ${x} ${y})`} />
-          ))}
-          {BREATH.map(([x, y, r], i) => (
-            <circle key={i} cx={x} cy={y} r={r} fill="#fff" opacity="0.95" />
-          ))}
-          {ROSES.map(([x, y, r], i) => (
-            <Rose key={i} cx={x} cy={y} r={r} />
-          ))}
-          {/* ribbon bow */}
-          <g fill="#c8102e" stroke="#8f0c1f" strokeWidth="1.5" strokeLinejoin="round">
-            <path d="M690 488 C660 458 624 470 636 504 C648 524 680 508 690 488Z" />
-            <path d="M690 488 C722 456 760 474 746 508 C732 526 700 508 690 488Z" />
-            <path d="M690 488 C672 520 650 560 640 596 L664 586 L690 520Z" />
-            <path d="M694 488 C706 522 730 560 750 596 L724 590 L692 520Z" />
-            <ellipse cx="692" cy="490" rx="13" ry="11" />
-          </g>
-          <g fill="#fff8ec" stroke="#d9cfba" strokeWidth="1">
-            <rect x="760" y="430" width="38" height="52" rx="3" transform="rotate(12 779 456)" />
-          </g>
-
-          <text x="455" y="600" textAnchor="middle" className="hand click-me" fontSize="30">click me!</text>
         </svg>
       </button>
+      <p className="intro-hint" aria-live="polite">{hint}</p>
     </div>
   );
 }

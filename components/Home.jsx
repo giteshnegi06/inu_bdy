@@ -14,11 +14,14 @@ export default function Home() {
   const audio = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [problem, setProblem] = useState("");
-  const [intro, setIntro] = useState("closed"); // closed -> opening -> done
+  const [intro, setIntro] = useState("peek");
 
-  const openIntro = () => {
-    setIntro("opening");
-    window.setTimeout(() => setIntro("done"), 2300);
+  // peek (letter half out) -> tap -> reading (letter slides out) -> leaving (fade) -> done
+  const advanceIntro = () => {
+    if (intro !== "peek") return;
+    setIntro("reading");
+    window.setTimeout(() => setIntro("leaving"), 1300);
+    window.setTimeout(() => setIntro("done"), 2000);
   };
 
   const toggle = () => {
@@ -58,7 +61,7 @@ export default function Home() {
 
   return (
     <>
-      <Intro state={intro} onOpen={openIntro} />
+      <Intro state={intro} onAdvance={advanceIntro} />
       <audio ref={audio} src={SONG_SRC} loop preload="metadata" playsInline />
       <Stage playing={playing} onToggle={toggle} />
       <MobileLayout playing={playing} onToggle={toggle} />

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { SONG_SRC } from "@/data/content";
+import Intro from "./Intro";
 import MobileLayout from "./MobileLayout";
 import Stage from "./Stage";
 
@@ -13,6 +14,12 @@ export default function Home() {
   const audio = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [problem, setProblem] = useState("");
+  const [intro, setIntro] = useState("closed"); // closed -> opening -> done
+
+  const openIntro = () => {
+    setIntro("opening");
+    window.setTimeout(() => setIntro("done"), 2300);
+  };
 
   const toggle = () => {
     const el = audio.current;
@@ -51,6 +58,7 @@ export default function Home() {
 
   return (
     <>
+      <Intro state={intro} onOpen={openIntro} />
       <audio ref={audio} src={SONG_SRC} loop preload="metadata" playsInline />
       <Stage playing={playing} onToggle={toggle} />
       <MobileLayout playing={playing} onToggle={toggle} />

@@ -132,3 +132,42 @@ p.cream { color: var(--cream); }
   .m-star1 { right: 9%; top: 11%; transform: rotate(10deg); }
   .m-star2 { left: 11%; bottom: 14%; transform: rotate(-9deg); }
 }
+
+/* ---------- Opening screen ---------- */
+.intro {
+  position: fixed; inset: 0; z-index: 50;
+  display: grid; place-items: center;
+  background: #b3191f;
+  transition: opacity 0.7s ease 1.6s;
+}
+.intro.opening { opacity: 0; pointer-events: none; }
+.intro-btn {
+  display: block; width: min(94vw, 940px); padding: 0; border: 0; background: none; cursor: pointer;
+}
+.intro-btn:disabled { cursor: default; }
+.intro-btn:focus-visible { outline: 2px solid var(--cream); outline-offset: 6px; }
+@media (max-width: 767px) {
+  .intro-btn { width: 100vw; }
+  .intro-svg { max-height: none; }
+}
+.intro-svg { display: block; width: 100%; height: auto; max-height: 92vh; overflow: visible; }
+.intro-svg .script { font-family: var(--font-script), cursive; fill: #2b2b2e; }
+.intro-svg .hand { font-family: Hand, cursive; fill: #fff; }
+.intro-svg .click-me { animation: bob 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.intro.opening .click-me { animation: none; opacity: 0; transition: opacity 0.3s; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+.intro-svg .card { transform: translateY(110px); }
+.intro-svg .flap-open { transform-box: view-box; transform-origin: 0 250px; transform: scaleY(0); opacity: 0; }
+.intro-svg .flap-closed { transform-box: view-box; transform-origin: 0 250px; }
+
+.intro.opening .flap-closed { animation: flapShut 0.45s ease-in forwards; }
+.intro.opening .flap-open { animation: flapOpen 0.45s ease-out 0.4s forwards; }
+.intro.opening .card { animation: cardUp 0.9s cubic-bezier(.2,.8,.2,1) 0.85s forwards; }
+@keyframes flapShut { to { transform: scaleY(0); } }
+@keyframes flapOpen { from { transform: scaleY(0); opacity: 1; } to { transform: scaleY(-1); opacity: 1; } }
+@keyframes cardUp { to { transform: translateY(-120px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro, .intro.opening .flap-closed, .intro.opening .flap-open, .intro.opening .card, .intro-svg .click-me { animation-duration: 0.01s; transition-duration: 0.01s; transition-delay: 0s; animation-delay: 0s; }
+}

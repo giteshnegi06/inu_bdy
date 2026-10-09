@@ -49,7 +49,7 @@ export default function MobileLayout({ playing, onToggle }) {
       </Scene>
       <p className="m-text">{flow(letterText.first)}</p>
 
-      <Scene x={540} y={1140} w={370} h={290}>
+      <Scene x={553} y={1150} w={336} h={252} style={{ width: "calc(100% + 32px)", margin: "0 -16px" }}>
         <Img f="img2" cx={724} cy={1282.3} w={349} h={252} />
         <Img f="4d2d2bd9771c41aa666d12268f831212" cx={592.4} cy={1190.1} w={39} h={37} rot={-14.33} />
       </Scene>

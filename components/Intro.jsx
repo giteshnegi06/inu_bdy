@@ -10,14 +10,14 @@ const DIR = "/assets/bouquet/";
 const OX = 50;
 const OY = 100;
 const LAYERS = [
-  ["bush-1.png", 0, -63.9, 500, 537.7, 0],
+  ["bush-1.webp", 0, -63.9, 500, 537.7, 0],
   ["lily.webp", 125.5, 15.5, 161.1, 161.1, 0.39],
   ["anemone.webp", 265.2, 31.2, 129.7, 129.7, -4.83],
   ["dahlia.webp", 112.4, 130.2, 83.1, 83.5, 2.29],
   ["orchid.webp", 173.8, 107.8, 128.3, 128.3, -4.12],
   ["rose.webp", 279.5, 109.5, 125.1, 125.1, 2.48],
   ["sunflower.webp", 165.1, 163.1, 169.8, 169.8, 3.61],
-  ["bush-1-top.png", 0, -63.9, 500, 537.7, 0],
+  ["bush-1-top.webp", 0, -63.9, 500, 537.7, 0],
 ];
 
 // A small heart centred on (0,0), about `s` px wide.
